@@ -7,9 +7,18 @@ import jwt from "jsonwebtoken";
 import path from "path";
 import socketIO from "socket.io";
 
-
 const PORT = process.env.PORT || 3001;
 const app = express();
+
+import MongooseConnection from "./connections/index";
+
+import API from './routes/index';
+
+const connectMongo = async () => {
+    return mongoose.connect(MongooseConnection.url);
+}
+
+app.use('/api', API);
 
 app.use(bodyParser.urlencoded({
     limit: "200mb",
@@ -26,10 +35,10 @@ app.use(cors({
 }));
 
 app.listen(PORT, () => {
-    console.log(`Server Running: ${PORT}`)
-    // connectMongo().then(() => {
-    //     console.log(`Connected to MongoDB`)
-    // }).catch((err) => {
-    //     console.log(err)
-    // })
-})
+    console.log(`Server Running: ${PORT}`);
+    connectMongo().then(() => {
+        console.log(`Connected to MongoDB`);
+    }).catch((err) => {
+        console.log(err);
+    });
+});
