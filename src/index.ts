@@ -18,8 +18,6 @@ const connectMongo = async () => {
     return mongoose.connect(MongooseConnection.url);
 }
 
-app.use('/api', API);
-
 app.use(bodyParser.urlencoded({
     limit: "200mb",
     extended: false
@@ -33,6 +31,8 @@ app.use(cors({
     credentials: true,
     optionsSuccessStatus: 200
 }));
+
+app.use('/api', API);
 
 app.listen(PORT, () => {
     console.log(`Server Running: ${PORT}`);
