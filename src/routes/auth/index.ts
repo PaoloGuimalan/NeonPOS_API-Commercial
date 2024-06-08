@@ -7,7 +7,7 @@ const router = express.Router();
 // Schemas Import
 
 import UserAccount from '../../schemas/useracccount';
-import { createJWTwExp } from "../../utils/helpers/jwthelper";
+import { createJWTwExp, jwtchecker } from "../../utils/helpers/jwthelper";
 import { deleteKeyInObject } from "../../utils/helpers/objectparser";
 import { UserDataWithPermissions } from "../../utils/modules/GetUserData";
 
@@ -64,5 +64,14 @@ router.post('/login', (req: Request, res: Response) => {
         res.send({ status: false, message: "Error verifying Account ID" }).status(500);
     });
 });
+
+router.get('/rfsh', jwtchecker, async (req: Request, res: Response) => {
+    const accountID = req.params.accountID;
+    const userID = req.params.userID;
+    // const deviceID = req.params.deviceID;
+
+    const finaldata = await UserDataWithPermissions(accountID, userID);
+    res.send({ status: true, message: "User has been authenticated", result: { data: deleteKeyInObject("_id", deleteKeyInObject("password", finaldata)) } });
+})
 
 export default router;

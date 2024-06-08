@@ -10,7 +10,7 @@ const jwtchecker = (req: Request, res: Response, next: NextFunction) => {
     if(token){
         jwt.verify(token, JWT_SECRET, async (err, decode: any) => {
             if(err){
-                console.log(err)
+                // console.log(err)
                 res.send({ status: false, message: err.message })
             }
             else{
@@ -20,7 +20,7 @@ const jwtchecker = (req: Request, res: Response, next: NextFunction) => {
                 await UserAccount.findOne({ accountID: id, "createdBy.userID": userID }).then((result: any) => {
                     if(result){
                         req.params.accountID = result.accountID;
-                        req.params.userID = result.userID;
+                        req.params.userID = userID;
                         req.params.deviceID = deviceID;
                         next();
                     }
