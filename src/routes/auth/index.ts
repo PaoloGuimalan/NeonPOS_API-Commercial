@@ -7,6 +7,7 @@ const router = express.Router();
 // Schemas Import
 
 import UserAccount from '../../schemas/useracccount';
+import { createJWTwExp } from "../../utils/jwthelper";
 
 //End Schema Import
 
@@ -28,12 +29,22 @@ router.post('/login', (req: Request, res: Response) => {
                 const userData = result[0];
                 const resultPassword = userData.password as unknown as string;
                 if(password === resultPassword){
-                    res.send({ status: true, message: "User has been authenticated" });
+                    const authtoken = createJWTwExp({
+                        accountID: userData.accountID,
+                        deviceID: userData.createdBy.deviceID,
+                        userID: userData.createdBy.userID
+                    })
+                    res.send({ status: true, message: "User has been authenticated", result: authtoken });
                 }
                 else{
                     bcrypt.compare(resultPassword, password).then(function(result) {
                         if(result){
-                            res.send({ status: true, message: "User has been authenticated" });
+                            const authtoken = createJWTwExp({
+                                accountID: userData.accountID,
+                                deviceID: userData.createdBy.deviceID,
+                                userID: userData.createdBy.userID
+                            })
+                            res.send({ status: true, message: "User has been authenticated", result: authtoken });
                         }
                         else{
                             res.send({ status: false, message: "Incorrect password" }).status(401);
