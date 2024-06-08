@@ -7,7 +7,9 @@ const router = express.Router();
 // Schemas Import
 
 import UserAccount from '../../schemas/useracccount';
-import { createJWTwExp } from "../../utils/jwthelper";
+import { createJWTwExp } from "../../utils/helpers/jwthelper";
+import { deleteKeyInObject } from "../../utils/helpers/objectparser";
+import { UserDataWithPermissions } from "../../utils/modules/GetUserData";
 
 //End Schema Import
 
@@ -20,7 +22,7 @@ router.post('/login', (req: Request, res: Response) => {
     const password = req.body.password;
     const userID = req.body.userID;
 
-    UserAccount.find({ accountID: accountID, "createdBy.userID": userID }).then((result) => {
+    UserAccount.find({ accountID: accountID, "createdBy.userID": userID }).then(async (result) => {
         if(result.length > 0){
             if(result.length > 1){
                 res.send({ status: false, message: "Unable to proceed due to duplicate accounts" }).status(401);
@@ -34,17 +36,19 @@ router.post('/login', (req: Request, res: Response) => {
                         deviceID: userData.createdBy.deviceID,
                         userID: userData.createdBy.userID
                     })
-                    res.send({ status: true, message: "User has been authenticated", result: authtoken });
+                    const finaldata = await UserDataWithPermissions(userData.accountID as unknown as string, userData.createdBy.userID as unknown as string);
+                    res.send({ status: true, message: "User has been authenticated", result: { authtoken: authtoken, data: deleteKeyInObject("_id", deleteKeyInObject("password", finaldata)) } });
                 }
                 else{
-                    bcrypt.compare(resultPassword, password).then(function(result) {
+                    bcrypt.compare(resultPassword, password).then(async function(result) {
                         if(result){
                             const authtoken = createJWTwExp({
                                 accountID: userData.accountID,
                                 deviceID: userData.createdBy.deviceID,
                                 userID: userData.createdBy.userID
                             })
-                            res.send({ status: true, message: "User has been authenticated", result: authtoken });
+                            const finaldata = await UserDataWithPermissions(userData.accountID as unknown as string, userData.createdBy.userID as unknown as string);
+                            res.send({ status: true, message: "User has been authenticated", result: { authtoken: authtoken, data: deleteKeyInObject("_id", deleteKeyInObject("password", finaldata)) }  });
                         }
                         else{
                             res.send({ status: false, message: "Incorrect password" }).status(401);

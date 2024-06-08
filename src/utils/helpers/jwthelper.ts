@@ -1,6 +1,6 @@
 require("dotenv").config()
 import jwt from "jsonwebtoken";
-import UserAccount from "../schemas/useracccount";
+import UserAccount from "../../schemas/useracccount";
 import { NextFunction, Request, Response } from "express";
 const JWT_SECRET = process.env.JWT_SECRET as unknown as string
 
