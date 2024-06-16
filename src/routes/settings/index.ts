@@ -22,11 +22,10 @@ router.get('/getpermissions', jwtchecker, async (req: Request, res: Response) =>
 router.post('/createpermissions', jwtchecker, async (req: Request, res: Response) => { // formerly /permissions
     // const accountID = req.params.accountID;
     const userID = req.params.userID;
-    // const deviceID = req.params.deviceID;
+    const deviceID = req.params.deviceID;
 
     const permissionType = req.body.permissionType;
     const allowedUsers = req.body.allowedUsers;
-    const deviceID = req.body.deviceID;
 
     const newPermissionID = await createPermissionID("PRM_ID_" + makeID(15));
     const newpermission = new UserPermission({
