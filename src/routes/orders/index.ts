@@ -127,12 +127,11 @@ router.post('/addcategory', jwtchecker, async (req: Request, res: Response) => {
 router.post('/closeorder', jwtchecker, (req: Request, res: Response) => { // derived from closeorderV2
     // const accountID = req.params.accountID;
     const userID = req.params.userID;
-    // const deviceID = req.params.deviceID;
+    const deviceID = req.params.deviceID;
 
     const orderID = req.body.orderID;
     const discount = req.body.discount;
     const amountreceived = req.body.amountreceived;
-    const deviceID = req.body.orderMadeBy.deviceID;
     const isRenewed = req.body.isRenewed;
 
     Order.updateOne({ orderID: orderID, "orderMadeBy.userID": userID, "orderMadeBy.deviceID": deviceID }, { receivedAmount: amountreceived, discount: discount, status: isRenewed ? "Renewed" : "Initial" }).then(async () => {
