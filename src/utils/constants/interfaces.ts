@@ -14,3 +14,8 @@ export interface UserAccountInterface {
         deviceID: string
     }
 }
+
+export interface GetOrdersParamsJwtPayload {
+    orderID: string;
+    datescope: string | null | undefined;
+}

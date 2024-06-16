@@ -10,6 +10,8 @@ import UserAccount from '../../schemas/useracccount';
 import { createJWTwExp, jwtchecker } from "../../utils/helpers/jwthelper";
 import { deleteKeyInObject } from "../../utils/helpers/objectparser";
 import { UserDataWithPermissions } from "../../utils/modules/GetUserData";
+import { dateGetter, makeID } from "../../utils/helpers/generatefns";
+import { createUniqueAccountID } from "../../utils/modules/auth/AuthHelpers";
 
 //End Schema Import
 
@@ -65,6 +67,129 @@ router.post('/login', (req: Request, res: Response) => {
     });
 });
 
+router.get('/getuser/:searchedID', jwtchecker, async (req: Request, res: Response) => { // formerly /getusers/:userID/:accountID
+    // const accountID = req.params.accountID;
+    const userID = req.params.userID;
+    const searchedID = req.params.searchedID;
+    // const deviceID = req.params.deviceID;
+
+    UserAccount.aggregate([
+        {
+            $match: { "createdBy.userID": userID, accountID: searchedID }
+        },
+        {
+            $lookup: {
+                from: "userpermissions",
+                // localField: "accountType",
+                // foreignField: "allowedUsers",
+                let: { accountType: "$accountType" },
+                pipeline: [
+                    {
+                        $match: {
+                            $expr: {
+                                $and: [
+                                    { $in: ["$$accountType", "$allowedUsers"] },
+                                    { $eq: [true, "$isEnabled"] },
+                                    { $eq: [userID, "$from.userID"] }
+                                ]
+                            }
+                        }
+                    }
+                ],
+                as: "permissions"
+            }
+        },
+        {
+            $project: {
+                "password": 0,
+                "permissions._id": 0,
+                "permissions.permissionID": 0,
+                "permissions.allowedUsers": 0,
+                "permissions.isEnabled": 0,
+                "permissions.__v": 0
+            }
+        }
+    ]).then((result) => {
+        const userdetails = result.map((mp) => {
+            const flattenedpermissions = mp.permissions.map((mpp: any) => mpp.permissionType);
+
+            return {
+                ...mp,
+                permissions: flattenedpermissions
+            }
+        });
+        res.send({ status: true, result: userdetails });
+    }).catch((err) => {
+        console.log(err);
+        res.status(400).send({ status: false, message: "Error fetching account" });
+    });
+});
+
+router.get('/getusers', jwtchecker, async (req: Request, res: Response) => { // formerly /getusers/:userID
+    // const accountID = req.params.accountID;
+    const userID = req.params.userID;
+    // const deviceID = req.params.deviceID;
+
+    UserAccount.find({ "createdBy.userID": userID }, { password: 0 }).sort({ _id: -1 }).then((result) => {
+        res.send({ status: true, result: result });
+    }).catch((err) => {
+        console.log(err);
+        res.status(400).send({ status: false, message: "Error fetching accounts" });
+    })
+});
+
+router.post('/register', jwtchecker, async (req: Request, res: Response) => {
+    // const accountID = req.params.accountID;
+    const creatorAccountID = req.params.accountID;
+    const userID = req.params.userID;
+    const deviceID = req.params.deviceID;
+
+    const firstname = req.body.firstname;
+    const middlename = req.body.middlename;
+    const lastname = req.body.lastname;
+
+    const accountType = req.body.accountType;
+    const password = req.body.password;
+
+    const newAccountID = await createUniqueAccountID("ACC_ID_" + makeID(4) + "_" + makeID(4) + "_" + makeID(4));
+    const newaccount = new UserAccount({
+        accountID: newAccountID,
+        accountType: accountType,
+        accountName: {
+            firstname: firstname,
+            middlename: middlename,
+            lastname: lastname
+        },
+        password: password,
+        dateCreated: dateGetter(),
+        createdBy: {
+            accountID: creatorAccountID,
+            userID: userID,
+            deviceID: deviceID
+        }
+    })
+
+    // res.send({ status: true, message: "Account creation has been stalled" });
+
+    newaccount.save().then(() => {
+        res.send({ status: true, message: "Admin account has been created" });
+    });
+});
+
+router.delete('/removeuser/:candidateID', jwtchecker, async (req: Request, res: Response) => { //formerly /removeuser/:token { userID, accountID }
+    // const accountID = req.params.accountID;
+    const userID = req.params.userID;
+    // const deviceID = req.params.deviceID;
+
+    const candidateID = req.params.candidateID;
+
+    UserAccount.findOneAndDelete({ "createdBy.userID": userID, accountID: candidateID }).then(() => {
+        res.send({ status: true, message: `${candidateID} has been deleted` });
+    }).catch((err) => {
+        res.status(400).send({ status: false, message: "Error deleting account", reference: err.message });
+    })
+})
+
 router.get('/rfsh', jwtchecker, async (req: Request, res: Response) => {
     const accountID = req.params.accountID;
     const userID = req.params.userID;
@@ -72,6 +197,6 @@ router.get('/rfsh', jwtchecker, async (req: Request, res: Response) => {
 
     const finaldata = await UserDataWithPermissions(accountID, userID);
     res.send({ status: true, message: "User has been authenticated", result: { data: deleteKeyInObject("_id", deleteKeyInObject("password", finaldata)) } });
-})
+});
 
 export default router;
