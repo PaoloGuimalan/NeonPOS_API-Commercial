@@ -27,7 +27,7 @@ router.post('/login', (req: Request, res: Response) => {
     UserAccount.find({ accountID: accountID, "createdBy.userID": userID }).then(async (result) => {
         if(result.length > 0){
             if(result.length > 1){
-                res.send({ status: false, message: "Unable to proceed due to duplicate accounts" }).status(401);
+                res.status(401).send({ status: false, message: "Unable to proceed due to duplicate accounts" }).status(401);
             }
             else{
                 const userData = result[0];
@@ -53,17 +53,17 @@ router.post('/login', (req: Request, res: Response) => {
                             res.send({ status: true, message: "User has been authenticated", result: { authtoken: authtoken, data: deleteKeyInObject("_id", deleteKeyInObject("password", finaldata)) }  });
                         }
                         else{
-                            res.send({ status: false, message: "Incorrect password" }).status(401);
+                            res.status(401).send({ status: false, message: "Incorrect password" });
                         }
                     });
                 }
             }
         }
         else{
-            res.send({ status: false, message: "No account matched" }).status(401);
+            res.status(401).send({ status: false, message: "No account matched" });
         }
     }).catch((err) => {
-        res.send({ status: false, message: "Error verifying Account ID" }).status(500);
+        res.status(500).send({ status: false, message: "Error verifying Account ID" });
     });
 });
 

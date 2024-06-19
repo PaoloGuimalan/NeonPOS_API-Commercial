@@ -11,7 +11,7 @@ const jwtchecker = (req: Request, res: Response, next: NextFunction) => {
         jwt.verify(token, JWT_SECRET, async (err, decode: any) => {
             if(err){
                 // console.log(err)
-                res.send({ status: false, message: err.message })
+                res.status(401).send({ status: false, message: err.message })
             }
             else{
                 const id = decode?.accountID;
@@ -25,11 +25,11 @@ const jwtchecker = (req: Request, res: Response, next: NextFunction) => {
                         next();
                     }
                     else{
-                        res.send({ status: false, message: "Cannot verify user!"})
+                        res.status(401).send({ status: false, message: "Cannot verify user!"})
                     }
                 }).catch((err) => {
                     console.log(err)
-                    res.send({ status: false, message: "Error verifying user!"})
+                    res.status(401).send({ status: false, message: "Error verifying user!"})
                 })
             }
         })
