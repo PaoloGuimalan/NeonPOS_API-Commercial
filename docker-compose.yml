@@ -1,0 +1,6 @@
+services:
+  api:
+    container_name: 'neonpos_api_commercial'
+    build: .
+    ports:
+      - "5002:3002"
