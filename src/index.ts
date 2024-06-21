@@ -7,7 +7,7 @@ import jwt from "jsonwebtoken";
 import path from "path";
 import socketIO from "socket.io";
 
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 3002;
 const app = express();
 
 import MongooseConnection from "./connections/index";
