@@ -13,6 +13,7 @@ const app = express();
 import MongooseConnection from "./connections/index";
 
 import API from './routes/index';
+import consumeMessages from "./utils/rabbitmq/consumer";
 
 const connectMongo = async () => {
     return mongoose.connect(MongooseConnection.url);
@@ -36,6 +37,7 @@ app.use('/api', API);
 
 app.listen(PORT, () => {
     console.log(`Server Running: ${PORT}`);
+    consumeMessages();
     connectMongo().then(() => {
         console.log(`Connected to MongoDB`);
     }).catch((err) => {
