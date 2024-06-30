@@ -1,6 +1,7 @@
+require("dotenv").config()
 import amqp from 'amqplib';
 import config from '../constants/config';
-
+const POD_NAME = process.env.POD_NAME || "podless";
 //step 1 : Connect to the rabbitmq server
 //step 2 : Create a new channel on that connection
 //step 3 : Create the exchange
@@ -19,7 +20,7 @@ class Producer {
     }
   }
 
-  async publishMessage(routingKey: string, message: any) {
+  async publishMessage(routingKey: string, event: string, message: any) {
     try{
         if (!this.channel) {
             await this.createChannel();
@@ -30,6 +31,8 @@ class Producer {
       
           const logDetails = {
             logType: routingKey,
+            pod: POD_NAME,
+            event: event,
             message: message,
             dateTime: new Date(),
           };

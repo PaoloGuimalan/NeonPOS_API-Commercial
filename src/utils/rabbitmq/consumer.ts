@@ -1,5 +1,7 @@
+require("dotenv").config();
 import amqp from "amqplib";
 import config from "../constants/config";
+const POD_NAME = process.env.POD_NAME || "podless";
 
 //step 1 : Connect to the rabbitmq server
 //step 2 : Create a new channel
@@ -24,8 +26,17 @@ export default async function consumeMessages() {
   
     channel.consume(q.queue, (msg: any) => {
       const data = JSON.parse(msg.content);
-      console.log(data);
       channel.ack(msg);
+
+      if(data.pod !== POD_NAME && data.logType === "INFO:NEONPOS_API"){
+        console.log(data);
+      }
+      else if(data.pod !== POD_NAME && data.logType === "WARNING:NEONPOS_API"){
+        console.log(data);
+      }
+      else if(data.pod !== POD_NAME && data.logType === "ERROR:NEONPOS_API"){
+        console.log(data);
+      }
     });
   }catch(ex){
     console.log("Unable to connect message broker");

@@ -12,7 +12,7 @@ const jwtchecker = async (req: Request, res: Response, next: NextFunction) => {
         jwt.verify(token, JWT_SECRET, async (err, decode: any) => {
             if(err){
                 // console.log(err)
-                await producer.publishMessage("ERROR", { message: "Token provided is invalid", data: token });
+                await producer.publishMessage("ERROR:NEONPOS_API", "jwtchecker_error", { message: "Token provided is invalid", data: token });
                 res.status(401).send({ status: false, message: err.message })
             }
             else{
@@ -27,19 +27,19 @@ const jwtchecker = async (req: Request, res: Response, next: NextFunction) => {
                         next();
                     }
                     else{
-                        await producer.publishMessage("WARNING", { message: "No user accounts matched the token provided", data: token });
+                        await producer.publishMessage("WARNING:NEONPOS_API", "jwtchecker_warning", { message: "No user accounts matched the token provided", data: token });
                         res.status(401).send({ status: false, message: "Cannot verify user!"})
                     }
                 }).catch(async (err) => {
                     console.log(err)
-                    await producer.publishMessage("ERROR", { message: "Fetching user account have an error", data: token });
+                    await producer.publishMessage("ERROR:NEONPOS_API", "jwtchecker_error", { message: "Fetching user account have an error", data: token });
                     res.status(401).send({ status: false, message: "Error verifying user!"})
                 })
             }
         })
     }
     else{
-        await producer.publishMessage("WARNING", { message: "No token provided", data: "N/A" });
+        await producer.publishMessage("WARNING:NEONPOS_API", "jwtchecker_warning", { message: "No token provided", data: "N/A" });
         res.send({ status: false, message: "Cannot verify user!"})
     }
 }
